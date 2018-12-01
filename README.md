@@ -12,4 +12,4 @@
 ## 运行例子出现这个错误：error C2664，例子中有一个地方被修改了，记得修改 是MERR_ASF_ALREADY_ACTIVATED， 而不是MERR_ASF_BASE_ALREADY_ACTIVATED
 ## 可以直接强转类型解决：
 ## MRESULT res = ASFActivation((MPChar)(APPID), (MPChar)(SDKKey));
-## 利用虹软sdk时，得特别注意图片宽度（4的倍数且不为0）和高度（2的倍数）解决方式：wigth = width/4*4  height = height/2*2
+## 利用虹软sdk时，得特别注意图片宽度（4的倍数且不为0）和高度（2的倍数）解决方式：wigth = width/4x4  height = height/2x2
