@@ -1,4 +1,9 @@
-# ArcsoftSDK_FaceMatch 利用虹软（ArcSoft）人脸识别SDK，进行筛图
+﻿# ArcsoftSDK_FaceMatch 利用虹软（ArcSoft）人脸识别SDK，进行筛图
+# 换了电脑路径是会变的，一定一定要记得修改，不然程序无法运行~接下来的两个链接就是解决路径问题的方法
+## 一般就是这3个地方的路径需要修改：
+###（1）属性页，VC++目录 ：包含目录、库目录(与opencv有关)
+###（2）属性页，C/C++常规：附加包含目录（与vs工程头文件包含有关）
+###（3）属性页，链接器常规：附加库目录（与vs工程lib静态库有关）
 # 大家使用我的程序前，先解决您当前IDE的环境路径
 ## 解决opencv 在window10和vs2017上的一些列操作问题：https://blog.csdn.net/mars_xiaolei/article/details/78759041  主要是路径的导入问题
 ## http://ai.arcsoft.com.cn/manual/arcface_windows_guideV2.html  路径导入问题
@@ -16,3 +21,12 @@
 ## 可以直接强转类型解决：
 ## MRESULT res = ASFActivation((MPChar)(APPID), (MPChar)(SDKKey));
 ## 利用虹软sdk时，得特别注意图片宽度（4的倍数且不为0）和高度（2的倍数）解决方式：wigth = width/4x4  height = height/2x2
+
+### opencv_test.cpp 为程序的主程序，运行从这个程序开始
+### GetScore.cpp 这个文件主要是返回两张比较后的得分
+### ProcessFolder.cpp 这个文件主要是批量获取图片的名字
+### 对于config.txt 的解释，第一个路径为测试图片的根目录 第二个路径为样本图片的根目录（每个样本图片应该只有一张（即每个人只要一张图片））
+### AllsampleFiles.txt 保存所有样本图片路径
+### AllsampleFilesNum.txt 保存样本图片的总数
+### AlltestFiles.txt  保存所有测试图片的路径
+###  AlltestFilesNum.txt  保存测试图片的总数 
