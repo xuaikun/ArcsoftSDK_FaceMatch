@@ -1,0 +1,48 @@
+////////////////////////////////////////////////////////////////////////////////
+//                   		ArcSoft Face Library 		      	              //        
+////////////////////////////////////////// /////////////////////////////////////
+
+Introduction:
+ArcSoft Face Library provides the universal interfaces to detect different face feature.
+
+Publish date:
+10/18/2018
+
+Expire date：
+11/27/2019
+
+Version:
+2.0.0.4
+
+Supported platform:
+VS2013_WIN64
+
+Compile Options:
+default
+
+Dependency:
+none
+
+Known issues:
+None.
+
+File List:
+|---doc
+|   |---ARCSOFT_FACE_SDK_DEVELOPER'S_GUIDE.PDF   		开发说明文档
+|---inc
+|   |---amcomdef.h                  					平台文件
+|   |---asvloffscreen.h                                	平台文件
+|   |---arcsoft_face_sdk.h                             	接口文件
+|   |---merror.h                                       	错误码文件
+|---lib
+|   |---libarcsoft_face.dll             				算法库
+|   |---libarcsoft_face_engine.dll            			引擎库 
+|   |---libarcsoft_face_engine.lib            			引擎库
+|---samplecode
+|   |---samplecode.txt                                 	示例代码
+|---releasenotes.txt                                    说明文件
+
+
+Change Logs:
+Initial Version
+

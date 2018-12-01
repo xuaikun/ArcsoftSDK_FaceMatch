@@ -1,0 +1,10 @@
+﻿  opencv_test.cpp
+e:\000007work\opencv_test\opencv_test\opencv_test\inc\merror.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\program files (x86)\windows kits\10\include\10.0.17763.0\shared\minwindef.h(60): warning C4005: “MAX_PATH”: 宏重定义
+  e:\000007work\opencv_test\opencv_test\opencv_test\inc\amcomdef.h(89): note: 参见“MAX_PATH”的前一个定义
+e:\000007work\opencv_test\opencv_test\opencv_test\opencv_test.cpp(42): warning C4244: “=”: 从“double”转换到“long”，可能丢失数据
+e:\000007work\opencv_test\opencv_test\opencv_test\opencv_test.cpp(146): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+e:\000007work\opencv_test\opencv_test\opencv_test\opencv_test.cpp(158): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+e:\000007work\opencv_test\opencv_test\opencv_test\opencv_test.cpp(212): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+e:\000007work\opencv_test\opencv_test\opencv_test\opencv_test.cpp(237): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  opencv_test.vcxproj -> E:\000007work\opencv_test\opencv_test\x64\Debug\opencv_test.exe
