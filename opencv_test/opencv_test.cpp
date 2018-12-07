@@ -39,6 +39,7 @@ void StringToChar(char *charname, string str)
 		charname[p] = str[p];
 	}
 }
+// 将字符串转换成长整形
 long StringToLong(string str)
 {
 	long x = 0;
@@ -94,7 +95,7 @@ int main()
 	cout << "sampleNum =" << sampleNum << endl;
 
 	intestfile.open("AlltestFiles.txt", ios::in);
-	long FisrtFolderNum = 0;
+	long long FisrtFolderNum = 0;
 	while (!intestfile.eof())
 	{
 		FisrtFolderNum++;
@@ -106,16 +107,11 @@ int main()
 		char testname_new[100] = {};
 		getline(intestfile, testname, '\n');
 		cout << testname << endl;
-		//第一层for循环表示从测试文件夹中按顺序抽取一张测试图片
-		//cout << endl << iNum1 << endl;
-		//cout << imgNames[0][iNum1].c_str() << endl;
 		// 对测试图片操作成功
-		//string str1 = imgNames[0][iNum1].c_str();
-		//string imgname_str = imgNames[0][iNum1].c_str();
 		char fileName[100] = {}; // 测试图片路径
 		StringToChar(testname_new, testname);
 		insamplefile.open("AllsampleFiles.txt", ios::in);
-		long SecondFolderNum = 0;
+		long long SecondFolderNum = 0;
 		while(!insamplefile.eof())
 		{
 			SecondFolderNum++;
@@ -131,15 +127,9 @@ int main()
 			// 以下为第二层文件夹的操作
 			char fileName1[100] = {};// 样本图片的上上层目录名称
 					// 定义两个长度为1000的字串数组，用于保存两张图片路径及名字
-			//IplImage * src = cvLoadImage(imgNames[1][iNum].c_str(), 1);
-			//if (!src) continue;
 			//第二层for循环表示从样本文件夹中按顺序抽取一张样本图片，
 			//测试图片依次比较样本图片
 			//获取图片数量
-			//int imgNum1 = imgNames[0].size();
-			//int imgNum2 = imgNames[1].size();
-			//cout << "imgNum1 =" << imgNum1 << endl;
-			//cout << "imgNum2 =" << imgNum2 << endl;
 			//for (int iNum1 = 0; iNum1 < imgNum1; iNum1++)
 			{
 				string imgname_str = testname;
@@ -174,12 +164,7 @@ int main()
 				{
 					char imgname[100] = {};
 					char imgname1[100] = {};
-					//cout << endl << iNum2 << endl;
-					//cout << imgNames[1][iNum2].c_str() << endl;
-					//IplImage * src = cvLoadImage(imgNames[1][iNum].c_str(), 1);
-					//if (!src) continue;
 					//将两张图片的路径及名字分别保存到字符串里面
-					//string imgname1_str = imgNames[1][iNum2].c_str();
 					string imgname1_str = samplename;
 					//将两个字符串依次保存到字符数组中，未修改的地方已经初始化为无
 					//通过此操作可以分别获得两张图片的路径和名字
@@ -189,23 +174,13 @@ int main()
 					//已经获取到两张图片，并提取出来，并通过此去获取它们的比较得分
 					IplImage* img = cvLoadImage(imgname);
 					IplImage* img1 = cvLoadImage(imgname1);
-					//cout << "**********************" << endl;
-					//cout << "handle = " << handle << endl;
-					//cout << "img = " << img << endl;
-					//cout << "img1 = " << img1 << endl;
-					//cout << "testname = " << testname << endl;
-					//cout << "samplename = " << samplename << endl;
-					//cout << "imgname = " << imgname << endl;
-					//cout << "imgname1 = " << imgname1 << endl;
-					//E:\000007work\img\3\80_100\m.07jz2h_22 - FaceId - 0.jpg
-					//E:\000007work\base\1\f.jpg
 
 					// 输入句柄handle，输入两张图片及路径名字，可以返回两张图片比较后的得分Score
 					Get_Score = Score(handle, img, img1, imgname, imgname1);
 					// 将得分扩大100倍 它的值：0<= Get_Score <= 100
-					//释放图片占用的内存
-					cvReleaseImage(&img);
-					cvReleaseImage(&img1);
+					//在接口里面已经释放图片占用的内存，外面已经不用再重复申请了
+					//cvReleaseImage(&img);
+					//cvReleaseImage(&img1);
 					Get_Score = Get_Score * 100;
 					cout << "Score = " << Get_Score << endl;
 					//https://www.cnblogs.com/tgyf/p/3839894.html 查看链接

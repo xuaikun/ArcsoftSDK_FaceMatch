@@ -69,6 +69,9 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 		Mat img_new = imread(imgname);
 		resize(img_new, img_new, Size(img->width, img->height), 0, 0, CV_INTER_LINEAR);
 		imwrite(imgname, img_new);
+		// 我觉得这这里释放，提前释放上一次的内存，避免下一次，再重复申请的时候，叠加申请内存，内存空间会出现问题
+		cvReleaseImage(&img);
+		// 重新加载图片
 		img = cvLoadImage(imgname);
 	}
 	if (img1_Flag == false)
@@ -76,6 +79,9 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 		Mat img1_new = imread(imgname1);
 		resize(img1_new, img1_new, Size(img1->width, img1->height), 0, 0, CV_INTER_LINEAR);
 		imwrite(imgname1, img1_new);
+		// 我觉得这这里释放，提前释放上一次的内存，避免下一次，再重复申请的时候，叠加申请内存，内存空间会出现问题
+		cvReleaseImage(&img1);
+		// 重新加载图片
 		img1 = cvLoadImage(imgname1);
 	}
 	//用做记录计算出的比较得分
@@ -142,6 +148,9 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 
 		SafeFree(copyfeature1.feature);		//释放内存
 	}
+	// 不管是否出现意外，都直接在这里释放cvloadImage
+	cvReleaseImage(&img);
+	cvReleaseImage(&img1);
 	return confidenceLevel;
 }
 void UnInit(MHandle handle)

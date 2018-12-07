@@ -118,11 +118,12 @@ void processingTotal(int i) {
 			//cout << endl << iNum << endl;
 			//cout << imgNames[i][iNum].c_str() << endl;
 			ofn << imgNames[i][iNum] << endl;
-			IplImage * src = cvLoadImage(imgNames[i][iNum].c_str(), 1);
-			if (!src) continue;
-			else {
-				cvReleaseImage(&src);
-			}
+			// 这里不需要图片的导入，只需要获取图片的名称
+			//IplImage * src = cvLoadImage(imgNames[i][iNum].c_str(), 1);
+			//if (!src) continue;
+			//else {
+			//	cvReleaseImage(&src);
+			//}
 			//processing-------------
 
 		}
@@ -142,11 +143,12 @@ void processingTotal(int i) {
 			//cout << endl << iNum << endl;
 			//cout << imgNames[i][iNum].c_str() << endl;
 			ofn << imgNames[i][iNum] << endl;
-			IplImage * src = cvLoadImage(imgNames[i][iNum].c_str(), 1);
-			if (!src) continue;
-			else {
-				cvReleaseImage(&src);
-			}
+			// 这里不需要图片的导入，只需要获取图片的名称
+			//IplImage * src = cvLoadImage(imgNames[i][iNum].c_str(), 1);
+			//if (!src) continue;
+			//else {
+			//	cvReleaseImage(&src);
+			//}
 			//processing-------------
 
 		}
