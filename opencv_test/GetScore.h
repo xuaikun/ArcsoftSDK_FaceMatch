@@ -29,11 +29,11 @@ using namespace std;
 ****************************************************/
 MHandle Init(MHandle handle);
 /****************************************************
-功能：返回两张图片比较后的得分
-输入:两张图片
-输出：得分
+功能：提取特征，并保存
+输入:句柄handle，图片，以及图片指针
+输出：None
 *****************************************************/
-MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char* imgname1);
+void feature_obtain(MHandle handle, IplImage* img, char* imgname, LPASF_FaceFeature my_feature);
 /****************************************************
 功能：反初始化引擎
 输入：None

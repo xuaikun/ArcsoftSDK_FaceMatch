@@ -24,10 +24,12 @@
 ## 利用虹软sdk时，得特别注意图片宽度（4的倍数且不为0）和高度（2的倍数）解决方式：wigth = width/4x4  height = height/2x2
 
 ### opencv_test.cpp 为程序的主程序，运行从这个程序开始
-### GetScore.cpp 这个文件主要是返回两张比较后的得分
+### GetScore.cpp 主要获取图片特征
 ### ProcessFolder.cpp 这个文件主要是批量获取图片的名字
 ### 对于config.txt 的解释，第一个路径为测试图片的根目录 第二个路径为样本图片的根目录（每个样本图片应该只有一张（即每个人只要一张图片））
 ### AllsampleFiles.txt 保存所有样本图片路径
 ### AllsampleFilesNum.txt 保存样本图片的总数
 ### AlltestFiles.txt  保存所有测试图片的路径
 ###  AlltestFilesNum.txt  保存测试图片的总数 
+
+### 提前将图片的特征提取出来再操作，整个程序的速度都会加快~

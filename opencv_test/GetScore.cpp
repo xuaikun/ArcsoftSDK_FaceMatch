@@ -24,7 +24,7 @@ MHandle Init(MHandle handle)
 		//printf("ALInitEngine sucess: %d\n",res);
 	return handle;
 }
-MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char* imgname1)
+void feature_obtain(MHandle handle, IplImage* img, char* imgname, LPASF_FaceFeature my_feature)
 {
 	MRESULT res;
 	//检查打印尺寸
@@ -43,27 +43,13 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 		img->width = img->width / 4 * 4;
 		img_Flag = false;
 	}
-	if (img1->width % 4 != 0)
-	{
-		img1->width = img1->width / 4 * 4;
-		img1_Flag = false;
-	}
 	//当高度不为2的倍数时，处理
 	if (img->height % 2 != 0)
 	{
 		img->height = img->height / 2 * 2;
 		img_Flag = false;
 	}
-	if (img1->height % 2 != 0)
-	{
-		img1->height = img1->height / 2 * 2;
-		img1_Flag = false;
-	}
-	//cout << "img->width = " << img->width << endl;
-	//cout << "img->height= " << img->height << endl;
-	//cout << "img1->width =" << img1->width << endl;
-	//cout << "img1->height=" << img1->height << endl;
-	//如图片宽度或高度出现异常，则适当修改图片的宽度和高度
+
 	if (img_Flag == false)
 	{
 		Mat img_new = imread(imgname);
@@ -74,26 +60,15 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 		// 重新加载图片
 		img = cvLoadImage(imgname);
 	}
-	if (img1_Flag == false)
-	{
-		Mat img1_new = imread(imgname1);
-		resize(img1_new, img1_new, Size(img1->width, img1->height), 0, 0, CV_INTER_LINEAR);
-		imwrite(imgname1, img1_new);
-		// 我觉得这这里释放，提前释放上一次的内存，避免下一次，再重复申请的时候，叠加申请内存，内存空间会出现问题
-		cvReleaseImage(&img1);
-		// 重新加载图片
-		img1 = cvLoadImage(imgname1);
-	}
-	//用做记录计算出的比较得分
 	MFloat confidenceLevel;
 	// 对比两张图片的相似程度
 	//因为图片的宽度和高度已经不会错了，则很多异常可以删掉
-	if (img && img1)
+	if (img)
 	{
 		ASF_MultiFaceInfo detectedFaces1 = { 0 };
 		ASF_SingleFaceInfo SingleDetectedFaces1 = { 0 };
 		ASF_FaceFeature feature1 = { 0 };
-		ASF_FaceFeature copyfeature1 = { 0 };
+		//ASF_FaceFeature copyfeature1 = { 0 };
 		res = ASFDetectFaces(handle, img->width, img->height, ASVL_PAF_RGB24_B8G8R8, (MUInt8*)img->imageData, &detectedFaces1);
 		if (MOK == res)
 		{
@@ -107,51 +82,27 @@ MFloat Score(MHandle handle, IplImage* img, IplImage* img1, char* imgname, char*
 			if (res == MOK)
 			{
 				//拷贝feature
-				copyfeature1.featureSize = feature1.featureSize;
-				copyfeature1.feature = (MByte *)malloc(feature1.featureSize);
-				memset(copyfeature1.feature, 0, feature1.featureSize);
-				memcpy(copyfeature1.feature, feature1.feature, feature1.featureSize);
+				my_feature->featureSize = feature1.featureSize;
+				my_feature->feature = (MByte *)malloc(feature1.featureSize);
+				memset(my_feature->feature, 0, feature1.featureSize);
+				memcpy(my_feature->feature, feature1.feature, feature1.featureSize);
 			}
 			//else
 				//printf("ASFFaceFeatureExtract 1 fail: %d\n", res);
 		}
 		//else
 			//printf("ASFFaceFeatureExtract 1 fail: %d\n", res);
-
-		//第二张人脸提取特征
-		ASF_MultiFaceInfo	detectedFaces2 = { 0 };
-		ASF_SingleFaceInfo SingleDetectedFaces2 = { 0 };
-		ASF_FaceFeature feature2 = { 0 };
-		res = ASFDetectFaces(handle, img1->width, img1->height, ASVL_PAF_RGB24_B8G8R8, (MUInt8*)img1->imageData, &detectedFaces2);
-		if (MOK == res)
-		{
-			SingleDetectedFaces2.faceRect.left = detectedFaces2.faceRect[0].left;
-			SingleDetectedFaces2.faceRect.top = detectedFaces2.faceRect[0].top;
-			SingleDetectedFaces2.faceRect.right = detectedFaces2.faceRect[0].right;
-			SingleDetectedFaces2.faceRect.bottom = detectedFaces2.faceRect[0].bottom;
-			SingleDetectedFaces2.faceOrient = detectedFaces2.faceOrient[0];
-
-			res = ASFFaceFeatureExtract(handle, img1->width, img1->height, ASVL_PAF_RGB24_B8G8R8, (MUInt8*)img1->imageData, &SingleDetectedFaces2, &feature2);
-			//if(MOK != res)
-				//printf("ASFFaceFeatureExtract 2 fail: %d\n", res);
-		}
-		//else
-			//printf("ASFFaceFeatureExtract 2 fail: %d\n", res);
-
-		// 单人脸特征比对
-
-		res = ASFFaceFeatureCompare(handle, &copyfeature1, &feature2, &confidenceLevel);
-		if (res != MOK)
-			printf("ASFFaceFeatureCompare fail: %d\n", res);
+		
 		//else
 			//printf("ASFFaceFeatureCompare sucess: %lf\n", confidenceLevel);
-
-		SafeFree(copyfeature1.feature);		//释放内存
+		/*my_feature->featureSize = copyfeature1.featureSize;
+		my_feature->feature = (MByte *)malloc(copyfeature1.featureSize);
+		memset(my_feature->feature, 0, copyfeature1.featureSize);
+		memcpy(my_feature->feature, copyfeature1.feature, copyfeature1.featureSize);
+		SafeFree(copyfeature1.feature);		//释放内存*/
 	}
 	// 不管是否出现意外，都直接在这里释放cvloadImage
 	cvReleaseImage(&img);
-	cvReleaseImage(&img1);
-	return confidenceLevel;
 }
 void UnInit(MHandle handle)
 {

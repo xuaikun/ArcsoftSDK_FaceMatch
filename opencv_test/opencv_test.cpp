@@ -4,6 +4,7 @@
 // 思路还是比较好的呢，把文件读到.txt文件中，然后只用读图片位置就好
 // 还得多考虑，哪些地方的内存需要释放呢，不让容易内存溢出就麻烦了
 // 一定要记得释放内存~~~~~~
+// 本程序主要用于基于样本上进行筛图，速度很快~
 #include "pch.h"
 #include "GetScore.h"
 #include "ProcessFolder.h"
@@ -25,12 +26,10 @@ using namespace cv;
 using namespace std;
 
 // 垃圾图片放置的路径
-string strFinalName = "E:\\000007work";
+string strFinalName = "E:\\000007work"; // \laji_new
 //生成的图片放置的地方
 string strSumName ="E:\\000007work\\Sample";
 
-extern vector<string> imgNames[2];
-extern vector<string> imgNames_real[2];
 // 将字符串转换成字符数组
 void StringToChar(char *charname, string str)
 {
@@ -54,11 +53,15 @@ long StringToLong(string str)
 int main()
 {
 	cout << "程序开始运行……" << endl;
+	// 定义分数变量
 	MFloat Get_Score;
+	MFloat confidenceLevel;
+	MRESULT res;
 	// 返回句柄handle
 	MHandle handle = NULL;
+	// 初始化
 	handle = Init(handle);
-	/*这里的工作主要是将图片从文件夹中提取出来*/
+	// 定义开始时间和结束时间
 	clock_t start, finish;
 	start = clock();
 	// 体现读取图片
@@ -79,6 +82,7 @@ int main()
 	cout << "开始比较图片……" << endl;
 	
 	string testname, testnameNum, samplename, samplenameNum;
+	string samplename_new[1000];
 	ifstream intestfile, intestfileNum, insamplefile, insamplefileNum;
 	intestfileNum.open("AlltestFilesNum.txt", ios::in);
 	getline(intestfileNum, testnameNum, '\n');
@@ -94,8 +98,38 @@ int main()
 	cout << "testNum =" << testNum << endl;
 	cout << "sampleNum =" << sampleNum << endl;
 
+	// 定义用于保存n个样本特征的数组
+	ASF_FaceFeature sample_feature[100] = {0};
+	// 定义用于保存测试图片特征的临时变量
+	ASF_FaceFeature test_feature = {0};
+
+	// 提取n个样本的特征
+	insamplefile.open("AllsampleFiles.txt", ios::in);
+	long SecondFolderNum = 0;
+	while (!insamplefile.eof())
+	{
+		SecondFolderNum++;
+		if (SecondFolderNum > sampleNum)
+		{
+			insamplefile.close();
+			break;
+		}
+		getline(insamplefile, samplename, '\n');
+		cout << samplename << endl;
+		//将n个样本名字保存到一个数组里面，方便后面提取
+		samplename_new[SecondFolderNum - 1] = samplename;
+		char imgname[100] = {};
+		StringToChar(imgname, samplename);
+		// 加载样本图片
+		IplImage* img = cvLoadImage(imgname);
+		// 提取样本特征
+		feature_obtain(handle, img, imgname, &sample_feature[SecondFolderNum - 1]);
+	}insamplefile.close();
+	// 到此位置，sample_feature[]保存了样本的特征
+	
+	// 开始获取得分
 	intestfile.open("AlltestFiles.txt", ios::in);
-	long long FisrtFolderNum = 0;
+	long  FisrtFolderNum = 0;
 	while (!intestfile.eof())
 	{
 		FisrtFolderNum++;
@@ -108,40 +142,43 @@ int main()
 		getline(intestfile, testname, '\n');
 		cout << testname << endl;
 		// 对测试图片操作成功
-		char fileName[100] = {}; // 测试图片路径
+		char fileName1[100] = {}; // 测试图片路径
 		StringToChar(testname_new, testname);
-		insamplefile.open("AllsampleFiles.txt", ios::in);
-		long long SecondFolderNum = 0;
-		while(!insamplefile.eof())
-		{
-			SecondFolderNum++;
-			if (SecondFolderNum > sampleNum )
-			{
-				insamplefile.close();
-				break;
-			}
-			getline(insamplefile, samplename, '\n');
-			cout << samplename << endl;
+		string imgname1_str = testname;
+		char imgname1[100] = {};
+		IplImage* img1;
+		char strSum_new[100] = {};
+		char strGoal_new[100] = {};
+		// 图片被剪切的标志
+		// true: 表示被剪切
+		// false: 表示未被剪切
+		bool photo_flag = false;
 
+		// 每张图片操作时，先计时一下
+		int start_compare = clock();
+		StringToChar(imgname1, testname);
+		img1 = cvLoadImage(imgname1);
+		// 获取测试图片的特征，操作这一步，晒图的速度增加了40倍
+		feature_obtain(handle, img1, imgname1, &test_feature);
+		
+		for(int i = 0; i < sampleNum; i++)
+		{
 			
 			// 以下为第二层文件夹的操作
-			char fileName1[100] = {};// 样本图片的上上层目录名称
-					// 定义两个长度为1000的字串数组，用于保存两张图片路径及名字
-			//第二层for循环表示从样本文件夹中按顺序抽取一张样本图片，
-			//测试图片依次比较样本图片
-			//获取图片数量
-			//for (int iNum1 = 0; iNum1 < imgNum1; iNum1++)
+			char fileName[100] = {};// 样本图片的上上层目录名称
+			samplename = samplename_new[i];
+			string imgname_str = samplename;
 			{
-				string imgname_str = testname;
+				
 				//获取文件的名字，不带前面路径
 				
 				// Num 主要统计 这个 目录的最后一级的名称，不带路径，仅为名称 的字符的个数
 				int Num = 0;
 				// 从这个图片路径的最后一个字符开始，统计到当前目录的上一层目录时，停止统计
-				for (int p = imgname_str.length() - 1; p >= 0; p--)
+				for (int p = imgname1_str.length() - 1; p >= 0; p--)
 				{
 					//cout << "str1[p] =" << str1[p] << endl;
-					if (imgname_str[p] != '\\')
+					if (imgname1_str[p] != '\\')
 					{
 						//cout << "str1[p] =" << str1[p] << endl;
 						Num = Num + 1;
@@ -150,9 +187,9 @@ int main()
 						break;
 				}
 				// 从文件的名字的第一个字符开始赋值给一个字符数组进行保存
-				for (int p = imgname_str.length() - Num, j = 0; p < imgname_str.length(); p++, j++)
+				for (int p = imgname1_str.length() - Num, j = 0; p < imgname1_str.length(); p++, j++)
 				{
-					fileName[j] = imgname_str[p];
+					fileName1[j] = imgname1_str[p];
 				}
 				// 打印生成的图片名称
 				//cout << "fileName = " << fileName << endl;
@@ -162,37 +199,34 @@ int main()
 
 				//for (int iNum2 = 0; iNum2 < imgNum2; iNum2++)
 				{
-					char imgname[100] = {};
-					char imgname1[100] = {};
-					//将两张图片的路径及名字分别保存到字符串里面
-					string imgname1_str = samplename;
-					//将两个字符串依次保存到字符数组中，未修改的地方已经初始化为无
-					//通过此操作可以分别获得两张图片的路径和名字
-					StringToChar(imgname, testname);
-					StringToChar(imgname1, samplename);
-
-					//已经获取到两张图片，并提取出来，并通过此去获取它们的比较得分
-					IplImage* img = cvLoadImage(imgname);
-					IplImage* img1 = cvLoadImage(imgname1);
-
-					// 输入句柄handle，输入两张图片及路径名字，可以返回两张图片比较后的得分Score
-					Get_Score = Score(handle, img, img1, imgname, imgname1);
+					// 获取两张图片比较的分数
+					res = ASFFaceFeatureCompare(handle, &sample_feature[i], &test_feature, &confidenceLevel);
+					if (res != MOK)
+					{
+						// 图片异常
+						printf("ASFFaceFeatureCompare fail: %d\n", res);
+						Get_Score = -1;
+					}
+					else
+					{
+						// 图片正常
+						Get_Score = confidenceLevel;
+					}
 					// 将得分扩大100倍 它的值：0<= Get_Score <= 100
 					//在接口里面已经释放图片占用的内存，外面已经不用再重复申请了
-					//cvReleaseImage(&img);
-					//cvReleaseImage(&img1);
+					
 					Get_Score = Get_Score * 100;
-					cout << "Score = " << Get_Score << endl;
+					// cout << "Score = " << Get_Score << endl;
 					//https://www.cnblogs.com/tgyf/p/3839894.html 查看链接
 
 					// 从这个图片路径的最后一个字符开始，统计到当前目录的上上（不是上）一层目录时，停止统计
 					// 这个路径用于作为筛选出来的根文件夹
 					// 计数每次初始化为0
 					int Num1 = 0;
-					for (int p = imgname1_str.length() - 1; p >= 0; p--)
+					for (int p = imgname_str.length() - 1; p >= 0; p--)
 					{
 						//cout << "str1[p] =" << str1[p] << endl;
-						if (imgname1_str[p] != '\\')
+						if (imgname_str[p] != '\\')
 						{
 							//cout << "str1[p] =" << str1[p] << endl;
 							Num1 = Num1 + 1;
@@ -201,7 +235,7 @@ int main()
 						{
 							for (int q = p - 1; q >= 0; q--)
 							{
-								if (imgname1_str[q] != '\\')
+								if (imgname_str[q] != '\\')
 								{
 									Num1 = Num1 + 1;
 								}
@@ -214,11 +248,11 @@ int main()
 					}
 
 					// 从文件的名字的第一个字符开始赋值给一个字符数组进行保存
-					for (int p = imgname1_str.length() - Num1, j = 0; p < imgname1_str.length(); p++, j++)
+					for (int p = imgname_str.length() - Num1, j = 0; p < imgname_str.length(); p++, j++)
 					{
-						if (imgname1_str[p] != '\\')
+						if (imgname_str[p] != '\\')
 						{
-							fileName1[j] = imgname1_str[p];
+							fileName[j] = imgname_str[p];
 						}
 						else
 						{
@@ -231,45 +265,39 @@ int main()
 					// 获取到的文件的名称为fileName
 
 					string strSum = strSumName; //"E:\\000007work\\Sample";
-					char strSum_new[100] = {};
-					char strGoal_new[100] = {};
+					
 					StringToChar(strSum_new, strSum);
 					CreateDirectoryA((LPCSTR)strSum_new, NULL);
-					string strGoal = strSum + "\\" + fileName1;
+					string strGoal = strSum + "\\" + fileName;
 					// 到这里了
 
 					StringToChar(strGoal_new, strGoal);
 					CreateDirectoryA((LPCSTR)strGoal_new, NULL);
-					//cout << "strGoal = " << strGoal << endl;
 					//已经获得两张图片的比较得分，根据分数的大小可以对图片进行分类
+					int min_compare = clock();
 					if ((Get_Score >= 55) && (Get_Score < 60))
 					{
 						//以下是对测试文件的剪切操作，目前是成功了
 						// 定义目标路径
 						//cout << "******************55_66 begin************" << endl;
 						string strFinal = strGoal + "\\" + "55_60";
-						//cout << "strFinal = " << strFinal << endl;
 						char Create_path[100] = {};
 						StringToChar(Create_path, strFinal);
-						//cout << "Create_path = " << Create_path << endl;
-						//cout << "******************55_66 ending************" << endl;
 						//判断路径是否存在，不存在则创建路径
 						CreateDirectoryA((LPCSTR)Create_path, NULL);
 						//目标路径和图片名称组合成新的路径
-						string str_new = strFinal + "\\" + fileName;
-						//cout << "str_new = " << str_new << endl;
+						string str_new = strFinal + "\\" + fileName1;
 						char pathName[100] = {};
 
 						StringToChar(pathName, str_new);
-						//cout << "pathName = " << pathName << endl;
 						// 剪切文件到指定的文件夹
 						// 文件剪切操作 成功
 						MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 						// 将图片剪切到55_60文件夹中
-						cout << "将图片剪切到55_60文件夹中" << endl;
+						cout << strFinal << endl;
 						// 图片剪切到了指定文件夹，跳出循环
-						insamplefile.close();
+						photo_flag = true;
 						break;
 					}
 
@@ -278,28 +306,23 @@ int main()
 						// 定义目标路径
 						//cout << "******************60_70 begin************" << endl;
 						string strFinal = strGoal + "\\" + "60_70";
-						//cout << "strFinal = " << strFinal << endl;
 						char Create_path[100] = {};
 						StringToChar(Create_path, strFinal);
-						//cout << "Create_path = " << Create_path << endl;
-						//cout << "******************55_66 ending************" << endl;
 						//判断路径是否存在，不存在则创建路径
 						CreateDirectoryA((LPCSTR)Create_path, NULL);
 						//目标路径和图片名称组合成新的路径
-						string str_new = strFinal + "\\" + fileName;
-						//cout << "str_new = " << str_new << endl;
+						string str_new = strFinal + "\\" + fileName1;
 						char pathName[100] = {};
 
 						StringToChar(pathName, str_new);
-						//cout << "pathName = " << pathName << endl;
 						// 剪切文件到指定的文件夹
 						// 文件剪切操作 成功
 						MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 						// 将图片剪切到60_70文件夹中
-						cout << "将图片剪切到60_70文件夹中" << endl;
+						cout << strFinal << endl;
 						// 图片剪切到了指定文件夹，跳出循环
-						insamplefile.close();
+						photo_flag = true;
 						break;
 					}
 					else if ((Get_Score >= 70) && (Get_Score < 80))
@@ -307,28 +330,23 @@ int main()
 						// 定义目标路径
 						//cout << "******************70_80 begin************" << endl;
 						string strFinal = strGoal + "\\" + "70_80";
-						//cout << "strFinal = " << strFinal << endl;
 						char Create_path[100] = {};
 						StringToChar(Create_path, strFinal);
-						//cout << "Create_path = " << Create_path << endl;
-						//cout << "******************55_66 ending************" << endl;
 						//判断路径是否存在，不存在则创建路径
 						CreateDirectoryA((LPCSTR)Create_path, NULL);
 						//目标路径和图片名称组合成新的路径
-						string str_new = strFinal + "\\" + fileName;
-						//cout << "str_new = " << str_new << endl;
+						string str_new = strFinal + "\\" + fileName1;
 						char pathName[100] = {};
 
 						StringToChar(pathName, str_new);
-						//cout << "pathName = " << pathName << endl;
 						// 剪切文件到指定的文件夹
 						// 文件剪切操作 成功
 						MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 						// 将图片剪切到70_80文件夹中
-						cout << "将图片剪切到70_80文件夹中" << endl;
+						cout << strFinal << endl;
 						// 图片剪切到了指定文件夹，跳出循环
-						insamplefile.close();
+						photo_flag = true;
 						break;
 					}
 					else if (Get_Score >= 80)
@@ -336,27 +354,22 @@ int main()
 						// 定义目标路径
 						//cout << "******************80_100 begin************" << endl;
 						string strFinal = strGoal + "\\" + "80_100";
-						//cout << "strFinal = " << strFinal << endl;
 						char Create_path[100] = {};
 						StringToChar(Create_path, strFinal);
-						//cout << "Create_path = " << Create_path << endl;
-						//cout << "******************55_66 ending************" << endl;
 						//判断路径是否存在，不存在则创建路径
 						CreateDirectoryA((LPCSTR)Create_path, NULL);
 						//目标路径和图片名称组合成新的路径
-						string str_new = strFinal + "\\" + fileName;
-						//cout << "str_new = " << str_new << endl;
+						string str_new = strFinal + "\\" + fileName1;
 						char pathName[100] = {};
 
 						StringToChar(pathName, str_new);
-						//cout << "pathName = " << pathName << endl;
 						// 剪切文件到指定的文件夹
 						// 文件剪切操作 成功
 						MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 						// 将图片剪切到80_100文件夹中
-						cout << "将图片剪切到80_100文件夹中" << endl;
-						insamplefile.close();
+						cout << strFinal << endl;
+						photo_flag = true;
 						// 图片剪切到了指定文件夹，跳出循环
 						break;
 					}
@@ -364,64 +377,58 @@ int main()
 					else if((0 > Get_Score) || (100 < Get_Score))
 					{
 						//做异常处理
-						cout << "图片出现异常" << endl;
+						cout << "###############图片出现异常##################" << endl;
 						// 定义目标路径
 						string strFinal = strFinalName;
 						string strFinal_new = strFinal + "\\" + "laji_new";
-						//cout << "strFinal_new = " << strFinal_new << endl;
 						char Create_path[100] = {};
 						StringToChar(Create_path, strFinal_new);
-						//cout << "Create_path = " << Create_path << endl;
-						//cout << "******************55_66 ending************" << endl;
 						//判断路径是否存在，不存在则创建路径
 						CreateDirectoryA((LPCSTR)Create_path, NULL);
 						//目标路径和图片名称组合成新的路径
-						string str_new = strFinal_new + "\\" + fileName;
-						//cout << "str_new = " << str_new << endl;
+						string str_new = strFinal_new + "\\" + fileName1;
 						char pathName[100] = {};
 						StringToChar(pathName, str_new);
-						//cout << "pathName = " << pathName << endl;
 						// 剪切文件到指定的文件夹
 						// 文件剪切操作 成功
 						MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 						//将这张图片剪切到垃圾文件夹中
-						cout << "将图片剪切到laji文件夹中" << endl;
-						insamplefile.close();
+						cout << strFinal_new << endl;
+						photo_flag = true;
 						break;
 					 }
 				}
 				
 			}
 			//继续查找，直到所有图片都被遍历完全	
-		}insamplefile.close();
+		}
+		// 表示至始至终，测试图片没有被放入任何一张图片
+		if (photo_flag == false)
 		// 这里表示从测试文件夹中抽出的照片不属于任何一个样本文件夹，只能把该图片剪切到laji文件夹
 		{
 			// 定义目标路径
-			//cout << "******************laji begin************" << endl;
+			cout << "没有匹配的样本" << endl;
 			string strFinal = strFinalName;
 			string strFinal_new = strFinal + "\\" + "laji_new";
 			//cout << "strFinal_new = " << strFinal_new << endl;
 			char Create_path[100] = {};
 			StringToChar(Create_path, strFinal_new);
-			//cout << "Create_path = " << Create_path << endl;
-			//cout << "******************55_66 ending************" << endl;
 			//判断路径是否存在，不存在则创建路径
 			CreateDirectoryA((LPCSTR)Create_path, NULL);
 			//目标路径和图片名称组合成新的路径
-			string str_new = strFinal_new + "\\" + fileName;
-			//cout << "str_new = " << str_new << endl;
+			string str_new = strFinal_new + "\\" + fileName1;
 			char pathName[100] = {};
 			StringToChar(pathName, str_new);
-			//cout << "pathName = " << pathName << endl;
 			// 剪切文件到指定的文件夹
 			// 文件剪切操作 成功
 			MoveFileA((LPCSTR)testname_new, (LPCSTR)pathName);
 
 			//将这张图片剪切到垃圾文件夹中
-			cout << "将图片剪切到laji文件夹中" << endl;
-			insamplefile.close();
+			cout << strFinal_new << endl;
 		}
+		int end_compare = clock();
+		cout << "操作一张图片需要的时间为"<< (double)(end_compare - start_compare) / CLOCKS_PER_SEC << "s" << endl;
 	}intestfile.close();
 	cout << "图片统计完毕" << endl;
 	UnInit(handle);
