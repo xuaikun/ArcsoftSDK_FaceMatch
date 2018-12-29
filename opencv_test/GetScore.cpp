@@ -38,7 +38,7 @@ void feature_obtain(MHandle handle, IplImage* img, char* imgname, LPASF_FaceFeat
 	bool img1_Flag = true;
 	//检查图片大小是否合理，合理则跳过，不合理将处理图片的宽度和高度
 	//当宽度不为4的倍数时，处理，这里就不考虑0 的情况
-	if (img->width % 4 != 4)
+	if (img->width % 4 != 0)
 	{
 		img->width = img->width / 4 * 4;
 		img_Flag = false;
